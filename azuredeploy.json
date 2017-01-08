@@ -1,0 +1,52 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "keyVaultResourceGroupDeployments":{
+        "type": "string"
+    },
+    "vaultNameDeployments":{
+        "type": "string"
+    },
+    "subscriptionid":{
+        "type": "string"
+    },
+    "secretName":{
+        "type": "string",
+        "defaultValue": "diskencryption-passphrase"
+    }
+  },
+  "variables": {
+    "getValueUri": "https://raw.githubusercontent.com/pgroene/getValuesFromKeyVault/master/getvalue.json"
+  },
+  "resources": [
+     {
+      "apiVersion": "2016-02-01",
+      "name": "GetValue",
+      "type": "Microsoft.Resources/deployments",
+      "properties": {
+        "mode": "Incremental",
+        "parameters": {
+           "test": {
+              "reference": {
+                        "keyVault": {
+                            "id": "[concat('/subscriptions/',parameters('subscriptionid'),'/resourceGroups/',parameters('keyVaultResourceGroupDeployments'),'/providers/Microsoft.KeyVault/vaults/',parameters('vaultNameDeployments'))]"
+                        },
+                        "secretName": "[parameters('secretName')]"
+                    }
+           }
+        },
+        "templateLink": {
+          "contentVersion": "1.0.0.0",
+          "uri": "[variables('getValueUri')]"
+        }
+      }
+    }
+  ],
+  "outputs": {
+    "testoutput": {
+      "type": "string",
+      "value": "[reference('GetValue').outputs.secretValue.value]"
+    }
+  }
+}
